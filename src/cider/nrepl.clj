@@ -458,6 +458,22 @@
     :handles {"track-state-middleware" ;; <- not handled !?
               {}}}))
 
+(def-wrapper wrap-truncate cider.nrepl.middleware.truncate/handle-truncate
+  #{"eval"}
+  {:doc "Enhances the `eval` op by truncating excessively long return
+values, while storing the full results server-side for later
+retrieval. Doing so conserves bandwidth and avoids flooding the client
+with unexpected output."
+   :expects #{"eval" "pr-values" #'wrap-pprint-fn}
+   :handles {"truncate-get-cached"
+             {:doc "get a previously evaluated and cached result"
+              :requires {"session" "The session where the evaluation was done"
+                         "hash-key" "The hash index to look up"}}
+             "truncate-delete-cached"
+             {:doc "delete a previously evaluated and cached result"
+              :requires {"session" "The session where the evaluation was done"
+                         "hash-key" "The hash index to delete"}}}})
+
 (def-wrapper wrap-undef cider.nrepl.middleware.undef/handle-undef
   {:doc "Middleware to undefine a symbol in a namespace."
    :handles
@@ -500,6 +516,7 @@
     wrap-test
     wrap-trace
     wrap-tracker
+    wrap-truncate
     wrap-undef
     wrap-version])
 
